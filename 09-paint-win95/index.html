@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paint.js</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "MS Sans Serif", "Tahoma", sans-serif;
+            background-color: #008080;
+            margin: 0;
+            padding: 0;
+            color: #000000;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #C0C0C0;
+            color: #000080;
+            border-bottom: 2px solid #808080;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        h1 img {
+            margin-right: 10px;
+        }
+
+        #container {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            grid-template-rows: auto 1fr auto;
+            flex-grow: 1;
+            background-color: #C0C0C0;
+            padding: 4px;
+            border: 2px solid #808080;
+            box-shadow: inset 4px 4px #ffffff, inset -4px -4px #404040;
+            height: 100%;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background-color: #000080;
+            color: #FFFFFF;
+            padding: 2px;
+            display: flex;
+        }
+
+        header button {
+            background-color: #C0C0C0;
+            border: 2px solid #808080;
+            box-shadow: 1px 1px 0 #ffffff;
+            color: #000000;
+            font-size: 14px;
+            margin-right: 2px;
+            padding: 2px 10px;
+            cursor: pointer;
+        }
+
+        header button:active {
+            box-shadow: inset 1px 1px 0 #404040;
+            background-color: #808080;
+        }
+
+        aside {
+            background-color: #C0C0C0;
+            border-right: 2px solid #808080;
+            padding: 10px;
+        }
+
+        aside nav button {
+            background: #bdbdbd url('./icons/draw.png') no-repeat center;
+            border: 2px solid #808080;
+            box-shadow: 1px 1px 0 #ffffff, -1px -1px 0 #404040;
+            color: #000000;
+            display: block;
+            height: 50px;
+            margin-bottom: 10px;
+            width: 50px;
+            cursor: pointer;
+            padding: 2px;
+            transition: all 0.1s ease-in-out;
+        }
+
+        aside nav button:active,
+        aside nav button.active {
+            box-shadow: inset 2px 2px 0 #404040, inset -2px -2px 0 #ffffff;
+            background-color: #808080;
+            border-color: #404040;
+        }
+
+        aside nav button:hover {
+            background-color: #d9d9d9;
+            box-shadow: 1px 1px 0 #ffffff, -1px -1px 0 #404040, 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        main {
+            background-color: #ffffff;
+            border: 2px solid #808080;
+            box-shadow: inset 4px 4px #ffffff, inset -4px -4px #404040;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        canvas {
+            border: 1px solid #000000;
+            box-shadow: inset 2px 2px #C0C0C0;
+        }
+
+        footer {
+            grid-column: 1 / -1;
+            background-color: #C0C0C0;
+            border-top: 2px solid #808080;
+            padding: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        input[type="color"] {
+            border: 2px solid #808080;
+            box-shadow: 1px 1px 0 #ffffff;
+            cursor: pointer;
+        }
+
+        input[type="color"]:active {
+            box-shadow: inset 1px 1px 0 #404040;
+            background-color: #808080;
+        }
+
+        #erase-btn {
+            background-image: url('./icons/erase.png');
+        }
+
+        #rectangle-btn {
+            background-image: url('./icons/rectangle.png');
+        }
+
+        #ellipse-btn {
+            background-image: url('./icons/ellipse.png');
+        }
+
+        #picker-btn {
+            background-image: url('./icons/picker.png');
+        }
+
+        #clear-btn {
+            background-image: url('./icons/trash.png');
+            background-size: 18px;
+        }
+        #save-btn {
+            background-image: url('data:image/jpeg;base64,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');
+            background-size: 18px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <h1>
+        <img src="./icon.png" alt="Paint.js">
+        Paint.js
+    </h1>
+    <div id="container">
+        <header>
+            <button>File</button>
+            <button>Edit</button>
+            <button>View</button>
+            <button>Image</button>
+            <button>Options</button>
+            <button>Help</button>
+        </header>
+        <aside>
+            <nav>
+                <button id="draw-btn" title="Pincel"></button>
+                <button id="erase-btn" title="Clear"></button>
+                <button id="rectangle-btn" title="Rectagle"></button>
+                <button id="ellipse-btn" title="Elipse"></button>
+                <button disabled id="picker-btn" title="Get Color"></button>
+                <button id="clear-btn" title="Clear All"></button>
+                <button id="save-btn" title="Save"></button>
+            </nav>
+        </aside>
+        <main>
+            <canvas id="canvas" width="900" height="700"></canvas>
+        </main>
+
+        <footer>
+            <input type="color" name="color-picker" id="color-picker">
+        </footer>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
